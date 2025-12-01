@@ -1,20 +1,12 @@
 import static java.lang.IO.println;
 import static java.lang.System.err;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
-
 /**
  * Advent of Code Day 01 solution using Java 25.
  */
 
 // Initialize a circular array in the range [0, 99].
-static final int[] CIRCULAR_ARRAY = IntStream.range(0, 100).toArray();
+static final int[] CIRCULAR_ARRAY = new int[100];
 
 void main(String... args) {
     var input = args.length > 0 ? args[0] : "Day01.test";
@@ -52,7 +44,7 @@ static final class Part1 implements Part {
         var zeroCount = steps.stream().reduce(0, (count, step) -> {
             pointer.set(movePointer(pointer.get(), step));
 
-            return readValue(pointer.get()) == 0
+            return pointer.get() == 0
                     ? count + 1
                     : count;
         });
@@ -111,8 +103,4 @@ static int movePointer(int currentPointer, int steps) {
         steps = CIRCULAR_ARRAY.length + (steps % CIRCULAR_ARRAY.length);
 
     return (currentPointer + steps) % CIRCULAR_ARRAY.length;
-}
-
-static int readValue(int index) {
-    return CIRCULAR_ARRAY[index];
 }
