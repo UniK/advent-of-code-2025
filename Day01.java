@@ -12,6 +12,10 @@ import java.util.stream.Stream;
 /**
  * Advent of Code Day 01 solution using Java 25.
  */
+
+// Initialize a circular array in the range [0, 99].
+static final int[] CIRCULAR_ARRAY = IntStream.range(0, 100).toArray();
+
 void main(String... args) {
     var input = args.length > 0 ? args[0] : "Day01.test";
 
@@ -34,8 +38,6 @@ sealed interface Part permits Part1, Part2 {
 }
 
 static final class Part1 implements Part {
-    // Initialize a circular array in the range [0, 99].
-    private static final int[] CIRCULAR_ARRAY = IntStream.range(0, 100).toArray();
 
     @Override
     public String compute(List<String> lines) {
@@ -50,27 +52,49 @@ static final class Part1 implements Part {
         var zeroCount = steps.stream().reduce(0, (count, step) -> {
             pointer.set(movePointer(pointer.get(), step));
 
-            return readValue(pointer.get()) == 0 ? count + 1 : count;
+            return readValue(pointer.get()) == 0
+                    ? count + 1
+                    : count;
         });
 
         return String.valueOf(zeroCount);
     }
-
-    int movePointer(int currentIndex, int steps) {
-        if (steps < 0)
-            steps = CIRCULAR_ARRAY.length + (steps % CIRCULAR_ARRAY.length);
-
-        return (currentIndex + steps) % CIRCULAR_ARRAY.length;
-    }
-
-    int readValue(int index) {
-        return CIRCULAR_ARRAY[index];
-    }
 }
 
-record Part2() implements Part {
+static final class Part2 implements Part {
+    @Override
     public String compute(List<String> lines) {
-        return "Not implemented";
+        var steps = lines.stream().mapToInt(
+                line -> line.startsWith("R")
+                        ? Integer.parseInt(line.substring(1))
+                        : -Integer.parseInt(line.substring(1)))
+                .boxed()
+                .toList();
+
+        var pointer = 50;
+        var zeroCount = 0;
+
+        for (var step : steps) {
+            int currentPointer = pointer;
+            int newPointer = movePointer(currentPointer, step);
+            int zerosPassed = 0;
+
+            if (step > 0) { // Moving right
+                zerosPassed = (currentPointer + step - 1) / CIRCULAR_ARRAY.length;
+            } else if (step < 0) { // Moving left
+                zerosPassed = Math.floorDiv(currentPointer - 1, CIRCULAR_ARRAY.length)
+                        - Math.floorDiv(currentPointer + step, CIRCULAR_ARRAY.length);
+            }
+
+            if (newPointer == 0) {
+                zerosPassed++;
+            }
+
+            zeroCount += zerosPassed;
+            pointer = newPointer;
+        }
+
+        return String.valueOf(zeroCount);
     }
 }
 
@@ -80,4 +104,15 @@ static String solve(int part, List<String> lines) {
         case 2 -> new Part2().compute(lines);
         default -> throw new IllegalArgumentException("Invalid part: " + part);
     };
+}
+
+static int movePointer(int currentPointer, int steps) {
+    if (steps < 0)
+        steps = CIRCULAR_ARRAY.length + (steps % CIRCULAR_ARRAY.length);
+
+    return (currentPointer + steps) % CIRCULAR_ARRAY.length;
+}
+
+static int readValue(int index) {
+    return CIRCULAR_ARRAY[index];
 }
