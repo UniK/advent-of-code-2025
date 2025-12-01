@@ -4,12 +4,12 @@ void main() {
     IO.println("Part 2: " + part2(lines));
 }
 
-static String part1(var lines) {
+static String part1(List<String> lines) {
     // TODO
     return "Not implemented";
 }
 
-static String part2(var lines) {
+static String part2(List<String> lines) {
     // TODO
     return "Not implemented";
 }
