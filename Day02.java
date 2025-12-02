@@ -12,9 +12,7 @@ void main(String... args) {
         println("""
                 Part 1: %s
                 Part 2: %s
-                """.formatted(
-                solve(1, lines),
-                solve(2, lines)));
+                """.formatted(solve(1, lines), solve(2, lines)));
     } catch (IOException e) {
         err.println("Unable to read input file '" + input + "': " + e.getMessage());
     }
@@ -24,31 +22,40 @@ sealed interface Part permits Part1, Part2 {
     String compute(List<String> lines);
 }
 
-record Part1() implements Part {
+static final class Part1 implements Part {
+
+    @Override
     public String compute(List<String> lines) {
-
-        lines.stream()
-                .map(line -> line.split(","))
-                .flatMap(Arrays::stream)
-                .map(rangeString -> rangeString.split("-"))
-                .flatMap(Arrays::stream)
+        var sumOfInvalidIds = lines.stream()
+                .flatMap(line -> Arrays.stream(line.split("[,-]")))
+                .map(Long::parseLong)
                 .gather(Gatherers.windowFixed(2))
-                .map(window -> {
-                    LongStream.rangeClosed(
-                            Long.parseLong(window.get(0)),
-                            Long.parseLong(window.get(1))).forEach(l -> IO.print(l + " "));
-                    IO.println();
-                    return LongStream.rangeClosed(
-                            Long.parseLong(window.get(0)),
-                            Long.parseLong(window.get(1)));
-                })
-                .toList();
+                // .peek(it -> IO.print(it + " - "))
+                .map(window -> LongStream.rangeClosed(window.get(0), window.get(1))
+                        .filter(num -> String.valueOf(num).length() % 2 == 0)
+                        .filter(this::containsInvalidId)
+                        // .peek(id -> IO.print(id + ","))
+                        .sum())
+                // .peek(IO::println)
+                .reduce(0L, Long::sum);
 
-        return "Not implemented";
+        return String.valueOf(sumOfInvalidIds);
+    }
+
+    private boolean containsInvalidId(long id) {
+        var idString = String.valueOf(id);
+
+        int length = idString.length();
+        var firstHalf = idString.substring(0, length / 2);
+        var secondHalf = idString.substring(length / 2);
+
+        return firstHalf.equals(secondHalf);
     }
 }
 
-record Part2() implements Part {
+static final class Part2 implements Part {
+
+    @Override
     public String compute(List<String> lines) {
         return "Not implemented";
     }
