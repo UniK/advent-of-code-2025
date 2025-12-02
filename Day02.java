@@ -1,12 +1,6 @@
 import static java.lang.IO.println;
 import static java.lang.System.err;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.stream.Stream;
-
 /**
  * Advent of Code Day 02 solution using Java 25.
  */
@@ -32,6 +26,24 @@ sealed interface Part permits Part1, Part2 {
 
 record Part1() implements Part {
     public String compute(List<String> lines) {
+
+        lines.stream()
+                .map(line -> line.split(","))
+                .flatMap(Arrays::stream)
+                .map(rangeString -> rangeString.split("-"))
+                .flatMap(Arrays::stream)
+                .gather(Gatherers.windowFixed(2))
+                .map(window -> {
+                    LongStream.rangeClosed(
+                            Long.parseLong(window.get(0)),
+                            Long.parseLong(window.get(1))).forEach(l -> IO.print(l + " "));
+                    IO.println();
+                    return LongStream.rangeClosed(
+                            Long.parseLong(window.get(0)),
+                            Long.parseLong(window.get(1)));
+                })
+                .toList();
+
         return "Not implemented";
     }
 }
