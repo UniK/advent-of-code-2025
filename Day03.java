@@ -1,12 +1,6 @@
 import static java.lang.IO.println;
 import static java.lang.System.err;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.stream.Stream;
-
 /**
  * Advent of Code Day 03 solution using Java 25.
  */
@@ -30,13 +24,45 @@ sealed interface Part permits Part1, Part2 {
     String compute(List<String> lines);
 }
 
-record Part1() implements Part {
+final static class Part1 implements Part {
     public String compute(List<String> lines) {
-        return "Not implemented";
+
+        int sum = lines.stream()
+                .mapToInt(this::findHighestJoltage)
+                .sum();
+
+        return String.valueOf(sum);
+    }
+
+    int findHighestJoltage(String s) {
+        // 1: Find the first, leftmost highest digit, excluding the last position.
+        var firstSubstring = s.substring(0, s.length() - 1);
+
+        int firstMaxDigt = Arrays.stream(firstSubstring.split(""))
+                .mapToInt(Integer::parseInt)
+                .max()
+                .orElse(-1);
+
+        if (firstMaxDigt == -1)
+            return 0;
+
+        // 2: Find the second highest digit starting from the position of
+        // firstMaxDigitPos.
+        int firstMaxDigitPos = s.indexOf(String.valueOf(firstMaxDigt)) + 1;
+        var secondSubstring = s.substring(firstMaxDigitPos);
+
+        int secondMaxDigit = Arrays.stream(secondSubstring.split(""))
+                .mapToInt(Integer::parseInt)
+                .max()
+                .orElse(-1);
+
+        return secondMaxDigit == -1
+                ? 0
+                : firstMaxDigt * 10 + secondMaxDigit;
     }
 }
 
-record Part2() implements Part {
+final static class Part2 implements Part {
     public String compute(List<String> lines) {
         return "Not implemented";
     }
