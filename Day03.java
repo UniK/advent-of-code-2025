@@ -25,6 +25,8 @@ sealed interface Part permits Part1, Part2 {
 }
 
 final static class Part1 implements Part {
+
+    @Override
     public String compute(List<String> lines) {
 
         int sum = lines.stream()
@@ -63,8 +65,44 @@ final static class Part1 implements Part {
 }
 
 final static class Part2 implements Part {
+
+    private static final int RIGHT_PADDING = 12;
+
+    @Override
     public String compute(List<String> lines) {
-        return "Not implemented";
+        long sum = lines.stream()
+                .mapToLong(this::findHighestJoltageOfTwelve)
+                .sum();
+
+        return String.valueOf(sum);
+    }
+
+    long findHighestJoltageOfTwelve(String s) {
+        var digits = s.chars()
+                .map(Character::getNumericValue)
+                .boxed()
+                .toList();
+
+        var currentIndex = 0;
+        long max = 0;
+
+        for (int i = RIGHT_PADDING - 1; i >= 0; i--) {
+            int rightBound = digits.size() - i;
+            var window = digits.subList(currentIndex, rightBound);
+
+            int localMax = window.stream()
+                    .mapToInt(Integer::intValue)
+                    .max()
+                    .orElseThrow();
+
+            int nextIndex = currentIndex + digits.subList(currentIndex, rightBound)
+                    .indexOf(localMax) + 1;
+
+            max = max * 10 + localMax;
+            currentIndex = nextIndex;
+        }
+
+        return max;
     }
 }
 
