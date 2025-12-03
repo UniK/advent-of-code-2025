@@ -57,7 +57,39 @@ static final class Part2 implements Part {
 
     @Override
     public String compute(List<String> lines) {
-        return "Not implemented";
+        var sumOfInvalidIds = lines.stream()
+                .flatMap(line -> Arrays.stream(line.split("[,-]")))
+                .map(Long::parseLong)
+                .gather(Gatherers.windowFixed(2))
+                // .peek(it -> IO.print(it + " - "))
+                .map(window -> LongStream.rangeClosed(window.get(0), window.get(1))
+                        .filter(num -> String.valueOf(num).length() % 2 == 0)
+                        .filter(this::containsRepeatedString)
+                        // .peek(id -> IO.print(id + ","))
+                        .sum())
+                // .peek(IO::println)
+                .reduce(0L, Long::sum);
+
+        return String.valueOf(sumOfInvalidIds);
+    }
+
+    boolean containsRepeatedString(Long id) {
+        var idString = String.valueOf(id);
+
+        switch (idString.length() % 2) {
+            case 1: // odd length
+                char firstChar = idString.charAt(0);
+                for (int i = 1; i < idString.length(); i++) {
+                    if (idString.charAt(i) != firstChar) {
+                        return false;
+                    }
+                }
+                return true;
+            case 0: // even length
+                return false;
+            default:
+                return false;
+        }
     }
 }
 
