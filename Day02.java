@@ -63,7 +63,6 @@ static final class Part2 implements Part {
                 .gather(Gatherers.windowFixed(2))
                 // .peek(it -> IO.print(it + " - "))
                 .map(window -> LongStream.rangeClosed(window.get(0), window.get(1))
-                        .filter(num -> String.valueOf(num).length() % 2 == 0)
                         .filter(this::containsRepeatedString)
                         // .peek(id -> IO.print(id + ","))
                         .sum())
@@ -76,20 +75,22 @@ static final class Part2 implements Part {
     boolean containsRepeatedString(Long id) {
         var idString = String.valueOf(id);
 
-        switch (idString.length() % 2) {
-            case 1: // odd length
-                char firstChar = idString.charAt(0);
-                for (int i = 1; i < idString.length(); i++) {
-                    if (idString.charAt(i) != firstChar) {
-                        return false;
-                    }
-                }
-                return true;
-            case 0: // even length
-                return false;
-            default:
-                return false;
+        Set<Long> invalidIds = new HashSet<>();
+
+        for (int j = 1; j <= idString.length() / 2; j++) {
+            String left = idString.substring(0, j);
+            String right = idString.substring(j);
+            if (right.length() % left.length() != 0) {
+                continue;
+            }
+
+            var repeat = right.length() / left.length();
+            if (right.equals(left.repeat(repeat))) {
+                invalidIds.add(id);
+            }
         }
+
+        return invalidIds.contains(id);
     }
 }
 
