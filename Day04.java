@@ -1,12 +1,6 @@
 import static java.lang.IO.println;
 import static java.lang.System.err;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.stream.Stream;
-
 /**
  * Advent of Code Day 04 solution using Java 25.
  */
@@ -30,15 +24,101 @@ sealed interface Part permits Part1, Part2 {
     String compute(List<String> lines);
 }
 
-record Part1() implements Part {
+final static class Part1 implements Part {
+    record Point(int r, int c) {
+    }
+
     public String compute(List<String> lines) {
-        return "Not implemented";
+        char[][] grid = lines.stream()
+                .map(String::toCharArray)
+                .toArray(char[][]::new);
+
+        Set<Point> collectedRolls = new HashSet<>();
+
+        for (int r = 0; r < grid.length; r++) {
+            for (int c = 0; c < grid[r].length; c++) {
+                if (grid[r][c] == '@') {
+                    long atNeighborCount = 0;
+                    for (int dr = -1; dr <= 1; dr++) {
+                        for (int dc = -1; dc <= 1; dc++) {
+                            if (dr == 0 && dc == 0)
+                                continue;
+
+                            int neighborR = r + dr;
+                            int neighborC = c + dc;
+
+                            if (neighborR >= 0 && neighborR < grid.length &&
+                                    neighborC >= 0 && neighborC < grid[r].length) {
+                                if (grid[neighborR][neighborC] == '@') {
+                                    atNeighborCount++;
+                                }
+                            }
+                        }
+                    }
+
+                    Point currentPoint = new Point(r, c);
+                    if (atNeighborCount < 4) {
+                        collectedRolls.add(currentPoint);
+                    } else {
+                        collectedRolls.remove(currentPoint);
+                    }
+                }
+            }
+        }
+
+        return String.valueOf(collectedRolls.size());
     }
 }
 
-record Part2() implements Part {
+final static class Part2 implements Part {
+
     public String compute(List<String> lines) {
-        return "Not implemented";
+        record Point(int r, int c) {
+        }
+
+        char[][] grid = lines.stream()
+                .map(String::toCharArray)
+                .toArray(char[][]::new);
+
+        Set<Point> collectedRolls = new HashSet<>();
+
+        boolean changed;
+        do {
+            changed = false;
+
+            for (int r = 0; r < grid.length; r++) {
+                for (int c = 0; c < grid[r].length; c++) {
+                    if (grid[r][c] == '@') {
+                        long rollNeighborCount = 0;
+                        for (int dr = -1; dr <= 1; dr++) {
+                            for (int dc = -1; dc <= 1; dc++) {
+                                if (dr == 0 && dc == 0)
+                                    continue;
+
+                                int neighborR = r + dr;
+                                int neighborC = c + dc;
+
+                                if (neighborR >= 0 && neighborR < grid.length &&
+                                        neighborC >= 0 && neighborC < grid[r].length) {
+                                    if (grid[neighborR][neighborC] == '@') {
+                                        rollNeighborCount++;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (rollNeighborCount < 4) {
+                            collectedRolls.add(new Point(r, c));
+                            grid[r][c] = '.';
+                            changed = true;
+                        }
+                    }
+                }
+            }
+
+        } while (changed);
+
+        return String.valueOf(collectedRolls.size());
     }
 }
 
