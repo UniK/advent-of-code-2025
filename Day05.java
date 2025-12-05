@@ -1,4 +1,5 @@
-import static java.lang.IO.println;
+import java.util.*;
+import static java.lang.System.out;
 import static java.lang.System.err;
 
 /**
@@ -9,7 +10,7 @@ void main(String... args) {
 
     try (Stream<String> lineStream = Files.lines(Path.of(input))) {
         List<String> lines = lineStream.toList();
-        println("""
+        out.println("""
                 Part 1: %s
                 Part 2: %s
                 """.formatted(
@@ -35,53 +36,97 @@ final static class Part1 implements Part {
                 .skip(1) // Skip the blank line itself
                 .toList();
 
-        // println("Fresh Ingredients: " + freshIngredients);
-        // println("Available Ingredients: " + availableIngredients);
+        // Parse fresh ranges
+        List<long[]> freshRanges = new ArrayList<>();
+        for (String line : freshIngredients) {
+            String[] parts = line.split("-");
+            long start = Long.parseLong(parts[0]);
+            long end = Long.parseLong(parts[1]);
+            freshRanges.add(new long[] { start, end });
+        }
 
-        Set<Long> freshIngredientRanges = freshIngredients.stream()
-                .flatMapToLong(line -> {
-                    String[] parts = line.split("[,-]");
-                    List<Long> numbers = Arrays.stream(parts)
-                            .map(Long::parseLong)
-                            .toList();
+        // Sort and merge overlapping ranges
+        freshRanges.sort(Comparator.comparingLong(a -> a[0]));
+        List<long[]> mergedRanges = new ArrayList<>();
+        for (long[] range : freshRanges) {
+            if (mergedRanges.isEmpty() || mergedRanges.getLast()[1] < range[0]) {
+                mergedRanges.add(range);
+            } else {
+                mergedRanges.getLast()[1] = Math.max(mergedRanges.getLast()[1], range[1]);
+            }
+        }
 
-                    // For each pair (start, end) produce a LongStream of the range
-                    return IntStream.range(0, numbers.size() / 2)
-                            .mapToLong(i -> numbers.get(2 * i)) // start values
-                            .mapToObj(start -> {
-                                int idx = numbers.indexOf(start);
-                                long end = numbers.get(idx + 1);
-                                return LongStream.rangeClosed(start, end);
-                            })
-                            .flatMapToLong(l -> l);
-                })
-                .boxed()
-                .collect(Collectors.toSet());
-
-        println("Fresh Ingredient Ranges: " + freshIngredientRanges);
-
-        long sum = availableIngredients.stream()
-                .flatMapToLong(line -> {
-                    String[] parts = line.split("[,-]");
-                    if (parts.length == 1) {
-                        return LongStream.of(Long.parseLong(parts[0]));
-                    } else if (parts.length == 2) {
-                        long start = Long.parseLong(parts[0]);
-                        long end = Long.parseLong(parts[1]);
-                        return LongStream.rangeClosed(start, end);
-                    }
-                    return LongStream.empty();
-                })
-                .filter(freshIngredientRanges::contains)
-                .count();
+        long sum = 0;
+        for (String line : availableIngredients) {
+            String[] parts = line.split("-");
+            if (parts.length == 1) {
+                long num = Long.parseLong(parts[0]);
+                if (isInRanges(num, mergedRanges))
+                    sum++;
+            } else {
+                long start = Long.parseLong(parts[0]);
+                long end = Long.parseLong(parts[1]);
+                sum += countInRange(start, end, mergedRanges);
+            }
+        }
 
         return String.valueOf(sum);
+    }
+
+    private static boolean isInRanges(long num, List<long[]> ranges) {
+        for (long[] r : ranges) {
+            if (num >= r[0] && num <= r[1])
+                return true;
+        }
+        return false;
+    }
+
+    private static long countInRange(long start, long end, List<long[]> ranges) {
+        long count = 0;
+        for (long[] r : ranges) {
+            long overlapStart = Math.max(start, r[0]);
+            long overlapEnd = Math.min(end, r[1]);
+            if (overlapStart <= overlapEnd) {
+                count += overlapEnd - overlapStart + 1;
+            }
+        }
+        return count;
     }
 }
 
 final static class Part2 implements Part {
     public String compute(List<String> lines) {
-        return "Not implemented";
+        List<String> freshIngredients = lines.stream()
+                .takeWhile(line -> !line.isBlank())
+                .toList();
+
+        // Parse ranges
+        List<long[]> freshRanges = new ArrayList<>();
+        for (String line : freshIngredients) {
+            String[] parts = line.split("-");
+            long start = Long.parseLong(parts[0]);
+            long end = Long.parseLong(parts[1]);
+            freshRanges.add(new long[] { start, end });
+        }
+
+        // Sort and merge overlapping ranges
+        freshRanges.sort(Comparator.comparingLong(a -> a[0]));
+        List<long[]> mergedRanges = new ArrayList<>();
+        for (long[] range : freshRanges) {
+            if (mergedRanges.isEmpty() || mergedRanges.getLast()[1] < range[0]) {
+                mergedRanges.add(range);
+            } else {
+                mergedRanges.getLast()[1] = Math.max(mergedRanges.getLast()[1], range[1]);
+            }
+        }
+
+        // Sum the sizes of merged ranges
+        long total = 0;
+        for (long[] range : mergedRanges) {
+            total += range[1] - range[0] + 1;
+        }
+
+        return String.valueOf(total);
     }
 }
 
