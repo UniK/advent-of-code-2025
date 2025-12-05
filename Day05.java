@@ -1,12 +1,6 @@
 import static java.lang.IO.println;
 import static java.lang.System.err;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.stream.Stream;
-
 /**
  * Advent of Code Day 05 solution using Java 25.
  */
@@ -30,13 +24,62 @@ sealed interface Part permits Part1, Part2 {
     String compute(List<String> lines);
 }
 
-record Part1() implements Part {
+final static class Part1 implements Part {
     public String compute(List<String> lines) {
-        return "Not implemented";
+        List<String> freshIngredients = lines.stream()
+                .takeWhile(line -> !line.isBlank())
+                .toList();
+
+        List<String> availableIngredients = lines.stream()
+                .dropWhile(line -> !line.isBlank())
+                .skip(1) // Skip the blank line itself
+                .toList();
+
+        // println("Fresh Ingredients: " + freshIngredients);
+        // println("Available Ingredients: " + availableIngredients);
+
+        Set<Long> freshIngredientRanges = freshIngredients.stream()
+                .flatMapToLong(line -> {
+                    String[] parts = line.split("[,-]");
+                    List<Long> numbers = Arrays.stream(parts)
+                            .map(Long::parseLong)
+                            .toList();
+
+                    // For each pair (start, end) produce a LongStream of the range
+                    return IntStream.range(0, numbers.size() / 2)
+                            .mapToLong(i -> numbers.get(2 * i)) // start values
+                            .mapToObj(start -> {
+                                int idx = numbers.indexOf(start);
+                                long end = numbers.get(idx + 1);
+                                return LongStream.rangeClosed(start, end);
+                            })
+                            .flatMapToLong(l -> l);
+                })
+                .boxed()
+                .collect(Collectors.toSet());
+
+        println("Fresh Ingredient Ranges: " + freshIngredientRanges);
+
+        long sum = availableIngredients.stream()
+                .flatMapToLong(line -> {
+                    String[] parts = line.split("[,-]");
+                    if (parts.length == 1) {
+                        return LongStream.of(Long.parseLong(parts[0]));
+                    } else if (parts.length == 2) {
+                        long start = Long.parseLong(parts[0]);
+                        long end = Long.parseLong(parts[1]);
+                        return LongStream.rangeClosed(start, end);
+                    }
+                    return LongStream.empty();
+                })
+                .filter(freshIngredientRanges::contains)
+                .count();
+
+        return String.valueOf(sum);
     }
 }
 
-record Part2() implements Part {
+final static class Part2 implements Part {
     public String compute(List<String> lines) {
         return "Not implemented";
     }
