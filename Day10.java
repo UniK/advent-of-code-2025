@@ -30,13 +30,13 @@ sealed interface Part permits Part1, Part2 {
     String compute(List<String> lines);
 }
 
-record Part1() implements Part {
+static final class Part1 implements Part {
     public String compute(List<String> lines) {
         return "Not implemented";
     }
 }
 
-record Part2() implements Part {
+static final class Part2 implements Part {
     public String compute(List<String> lines) {
         return "Not implemented";
     }
