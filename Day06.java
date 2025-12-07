@@ -20,36 +20,38 @@ void main(String... args) {
     }
 }
 
+static long vertical(List<String> padded, int k) {
+    StringBuilder sb = new StringBuilder();
+    for (int row = 0; row < padded.size() - 1; row++) {
+        char c = padded.get(row).charAt(k);
+        if (Character.isDigit(c)) sb.append(c);
+    }
+    return sb.length() > 0 ? Long.parseLong(sb.toString()) : 0L;
+}
+
 sealed interface Part permits Part1, Part2 {
     String compute(List<String> lines);
 }
 
 static final class Part1 implements Part {
     public String compute(List<String> lines) {
+        List<String> numberLines = lines.subList(0, lines.size() - 1);
+        String[] operators = lines.getLast().strip().split("\\s+");
 
-        // Numbers: Read the all but last line and split into columns.
-        List<String[]> numberRows = lines.subList(0, lines.size() - 1).stream()
-                .map(line -> line.strip().split("\\s+"))
-                .toList();
-
-        // Operators: Read the last line and split into columns.
-        String[] operatorRow = lines.getLast().strip().split("\\s+");
-
-        int numColumns = numberRows.getFirst().length;
-
-        return String.valueOf(IntStream.range(0, numColumns)
-                .mapToLong(colIndex -> {
-                    char operator = operatorRow[colIndex].charAt(0);
-
-                    return numberRows.stream()
-                            .map(row -> row[colIndex])
-                            .mapToLong(Long::parseLong)
-                            .reduce((a, b) -> switch (operator) {
+        return String.valueOf(IntStream.range(0, operators.length)
+                .mapToLong(i -> {
+                    char op = operators[i].charAt(0);
+                    List<Long> nums = numberLines.stream()
+                            .map(line -> line.strip().split("\\s+")[i])
+                            .map(Long::parseLong)
+                            .toList();
+                    return nums.stream()
+                            .reduce((a, b) -> switch (op) {
                                 case '+' -> a + b;
                                 case '*' -> a * b;
-                                default -> throw new IllegalStateException("Unexpected operator: " + operator);
+                                default -> throw new IllegalStateException("Unexpected operator: " + op);
                             })
-                            .orElseThrow(() -> new IllegalStateException("No numbers found for column: " + colIndex));
+                            .orElse(0L);
                 })
                 .sum());
     }
@@ -57,9 +59,43 @@ static final class Part1 implements Part {
 
 static final class Part2 implements Part {
     public String compute(List<String> lines) {
-        return "Not implemented";
+        int maxLen = lines.stream().mapToInt(String::length).max().orElse(0);
+        List<String> padded = lines.stream()
+                .map(line -> String.format("%-" + maxLen + "s", line))
+                .toList();
+        String operatorLine = lines.getLast();
+        List<Integer> opPositions = new ArrayList<>();
+        for (int j = 0; j < operatorLine.length(); j++) {
+            if (operatorLine.charAt(j) != ' ') {
+                opPositions.add(j);
+            }
+        }
+        String[] operators = opPositions.stream().map(j -> "" + operatorLine.charAt(j)).toArray(String[]::new);
+        return String.valueOf(IntStream.range(0, operators.length)
+                .map(i -> operators.length - 1 - i)
+                .mapToLong(i -> {
+                    char op = operators[i].charAt(0);
+                    int start = opPositions.get(i);
+                    int end = i < opPositions.size() - 1 ? opPositions.get(i + 1) - 1 : maxLen - 1;
+                    List<Long> nums = new ArrayList<>();
+                    for (int k = start; k <= end; k++) {
+                        long v = vertical(padded, k);
+                        if (v != 0) nums.add(v);
+                    }
+                    Collections.reverse(nums);
+                    return nums.stream()
+                            .reduce((a, b) -> switch (op) {
+                                case '+' -> a + b;
+                                case '*' -> a * b;
+                                default -> throw new IllegalStateException("Unexpected operator: " + op);
+                            })
+                            .orElse(0L);
+                })
+                .sum());
     }
 }
+
+
 
 static String solve(int part, List<String> lines) {
     return switch (part) {
