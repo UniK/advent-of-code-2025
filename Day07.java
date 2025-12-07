@@ -1,15 +1,14 @@
+import static java.lang.IO.print;
 import static java.lang.IO.println;
 import static java.lang.System.err;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.stream.Stream;
 
 /**
  * Advent of Code Day 07 solution using Java 25.
  */
+sealed interface Part permits Part1, Part2 {
+    String compute(List<String> lines);
+}
+
 void main(String... args) {
     var input = args.length > 0 ? args[0] : "Day07.test";
 
@@ -26,13 +25,36 @@ void main(String... args) {
     }
 }
 
-sealed interface Part permits Part1, Part2 {
-    String compute(List<String> lines);
-}
-
 static final class Part1 implements Part {
     public String compute(List<String> lines) {
-        return "Not implemented";
+
+        int rejectsCount = 0;
+
+        Set<Integer> currentPositions = new HashSet<>();
+        currentPositions.add(lines.get(0).indexOf('S'));
+
+        // Iterate over the rows
+        Set<Integer> nextPositions = new HashSet<>();
+        for (int col = 1; col < lines.size(); col++) {
+            nextPositions.clear();
+
+            // Process each position in the current row
+            for (Integer pos : currentPositions) {
+                char charAtPos = lines.get(col).charAt(pos);
+                switch (charAtPos) {
+                    case '.' -> nextPositions.add(pos);
+                    case '^' -> {
+                        rejectsCount++;
+                        nextPositions.add(pos - 1);
+                        nextPositions.add(pos + 1);
+                    }
+                }
+            }
+            currentPositions.clear();
+            currentPositions.addAll(nextPositions);
+        }
+
+        return String.valueOf(rejectsCount);
     }
 }
 
