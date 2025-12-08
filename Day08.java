@@ -1,12 +1,6 @@
 import static java.lang.IO.println;
 import static java.lang.System.err;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.stream.Stream;
-
 /**
  * Advent of Code Day 08 solution using Java 25.
  */
@@ -32,7 +26,17 @@ sealed interface Part permits Part1, Part2 {
 
 static final class Part1 implements Part {
     public String compute(List<String> lines) {
-        return "Not implemented";
+        record JunctionBox(int x, int y, int z) {}
+
+        List<JunctionBox> coordinates = lines.stream()
+                .map(line -> line.split(","))
+                .map(parts -> new JunctionBox(
+                        Integer.parseInt(parts[0]),
+                        Integer.parseInt(parts[1]),
+                        Integer.parseInt(parts[2])))
+                .toList();
+
+        return String.valueOf(coordinates);
     }
 }
 
