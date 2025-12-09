@@ -25,8 +25,42 @@ sealed interface Part permits Part1, Part2 {
 }
 
 static final class Part1 implements Part {
+
+    record RedTile(long x, long y) {}
+
     public String compute(List<String> lines) {
-        return "Not implemented";
+
+        long maxArea = -1;
+
+        List<RedTile> points = lines.stream()
+                .map(line -> line.split(","))
+                .map(parts -> new RedTile(
+                        Integer.parseInt(parts[0].strip()),
+                        Integer.parseInt(parts[1].strip())))
+                .collect(Collectors.toList());
+
+        for (RedTile it1 : points) {
+            for (RedTile it2 : points) {
+                var localArea = calcArea(it1, it2);
+
+                if (localArea > maxArea)
+                    maxArea = localArea;
+            }
+        }
+
+        return String.valueOf(maxArea);
+    }
+
+    long calcArea(RedTile rt1, RedTile rt2) {
+        System.out.printf("(%s,%s)(%s,%s)\t[width: %s, height: %s] - area: %s%n",
+                rt1.x,
+                rt1.y,
+                rt2.x,
+                rt2.y,
+                Math.abs(rt1.x - rt2.x) + 1,
+                Math.abs(rt1.y - rt2.y) + 1,
+                (Math.abs(rt1.x - rt2.x) + 1) * (Math.abs(rt1.y - rt2.y) + 1));
+        return (Math.abs(rt1.x - rt2.x) + 1) * (Math.abs(rt1.y - rt2.y) + 1);
     }
 }
 
